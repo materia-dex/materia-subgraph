@@ -1,31 +1,31 @@
 import { PairHourData } from './../types/schema'
 /* eslint-disable prefer-const */
 import { BigInt, BigDecimal, EthereumEvent } from '@graphprotocol/graph-ts'
-import { Pair, Bundle, Token, UniswapFactory, UniswapDayData, PairDayData, TokenDayData } from '../types/schema'
+import { Pair, Bundle, Token, MateriaFactory, MateriaDayData, PairDayData, TokenDayData } from '../types/schema'
 import { ONE_BI, ZERO_BD, ZERO_BI, FACTORY_ADDRESS } from './helpers'
 
-export function updateUniswapDayData(event: EthereumEvent): UniswapDayData {
-  let uniswap = UniswapFactory.load(FACTORY_ADDRESS)
+export function updateMateriaDayData(event: EthereumEvent): MateriaDayData {
+  let materia = MateriaFactory.load(FACTORY_ADDRESS)
   let timestamp = event.block.timestamp.toI32()
   let dayID = timestamp / 86400
   let dayStartTimestamp = dayID * 86400
-  let uniswapDayData = UniswapDayData.load(dayID.toString())
-  if (uniswapDayData === null) {
-    uniswapDayData = new UniswapDayData(dayID.toString())
-    uniswapDayData.date = dayStartTimestamp
-    uniswapDayData.dailyVolumeUSD = ZERO_BD
-    uniswapDayData.dailyVolumeETH = ZERO_BD
-    uniswapDayData.totalVolumeUSD = ZERO_BD
-    uniswapDayData.totalVolumeETH = ZERO_BD
-    uniswapDayData.dailyVolumeUntracked = ZERO_BD
+  let materiaDayData = MateriaDayData.load(dayID.toString())
+  if (materiaDayData === null) {
+    materiaDayData = new MateriaDayData(dayID.toString())
+    materiaDayData.date = dayStartTimestamp
+    materiaDayData.dailyVolumeUSD = ZERO_BD
+    materiaDayData.dailyVolumeETH = ZERO_BD
+    materiaDayData.totalVolumeUSD = ZERO_BD
+    materiaDayData.totalVolumeETH = ZERO_BD
+    materiaDayData.dailyVolumeUntracked = ZERO_BD
   }
 
-  uniswapDayData.totalLiquidityUSD = uniswap.totalLiquidityUSD
-  uniswapDayData.totalLiquidityETH = uniswap.totalLiquidityETH
-  uniswapDayData.txCount = uniswap.txCount
-  uniswapDayData.save()
+  materiaDayData.totalLiquidityUSD = materia.totalLiquidityUSD
+  materiaDayData.totalLiquidityETH = materia.totalLiquidityETH
+  materiaDayData.txCount = materia.txCount
+  materiaDayData.save()
 
-  return uniswapDayData as UniswapDayData
+  return materiaDayData as MateriaDayData
 }
 
 export function updatePairDayData(event: EthereumEvent): PairDayData {

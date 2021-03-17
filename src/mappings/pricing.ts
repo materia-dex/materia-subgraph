@@ -3,7 +3,7 @@ import { Pair, Token, Bundle } from '../types/schema'
 import { BigDecimal, Address, BigInt } from '@graphprotocol/graph-ts/index'
 import { ZERO_BD, factoryContract, ADDRESS_ZERO, ONE_BD } from './helpers'
 
-const IETH_ADDRESS = '0x1d6316dbbe18b6e9b75ae064aa114fe7dc208edc'
+export const IETH_ADDRESS = '0x1d6316dbbe18b6e9b75ae064aa114fe7dc208edc'
 const WUSD_IETH_PAIR = '0x7f8e6c3e07172fb7a029f5c5be17d8f5128322b6' // created block 11916118
 
 export function getEthPriceInUSD(): BigDecimal {

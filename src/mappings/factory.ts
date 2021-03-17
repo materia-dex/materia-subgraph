@@ -8,9 +8,13 @@ import {
   ZERO_BD,
   ZERO_BI,
   fetchTokenSymbol,
+  fetchTokenISymbol,
   fetchTokenName,
+  fetchITokenName,
   fetchTokenDecimals,
-  fetchTokenTotalSupply
+  fetchITokenDecimals,
+  fetchTokenTotalSupply,
+  fetchItemSoruce,
 } from './helpers'
 
 export function handleNewPair(event: PairCreated): void {
@@ -41,17 +45,23 @@ export function handleNewPair(event: PairCreated): void {
   // fetch info if null
   if (token0 === null) {
     token0 = new Token(event.params.token0.toHexString())
+    token0.source = fetchItemSoruce(event.params.token0)
     token0.symbol = fetchTokenSymbol(event.params.token0)
+    token0.isymbol = fetchTokenISymbol(event.params.token0)
     token0.name = fetchTokenName(event.params.token0)
+    token0.iname = fetchITokenName(event.params.token0)
     token0.totalSupply = fetchTokenTotalSupply(event.params.token0)
-    let decimals = fetchTokenDecimals(event.params.token0)
+    let decimals = fetchTokenDecimals(event.params.token0) 
+    let idecimals = fetchITokenDecimals(event.params.token0) 
+
     // bail if we couldn't figure out the decimals
-    if (decimals === null) {
+    if (decimals === null || idecimals === null) {
       log.debug('mybug the decimal on token 0 was null', [])
       return
     }
 
     token0.decimals = decimals
+    token0.idecimals = idecimals
     token0.derivedETH = ZERO_BD
     token0.tradeVolume = ZERO_BD
     token0.tradeVolumeUSD = ZERO_BD
@@ -64,16 +74,23 @@ export function handleNewPair(event: PairCreated): void {
   // fetch info if null
   if (token1 === null) {
     token1 = new Token(event.params.token1.toHexString())
+    token1.source = fetchItemSoruce(event.params.token1)
     token1.symbol = fetchTokenSymbol(event.params.token1)
+    token1.isymbol = fetchTokenISymbol(event.params.token1)
     token1.name = fetchTokenName(event.params.token1)
+    token1.iname = fetchITokenName(event.params.token1)
     token1.totalSupply = fetchTokenTotalSupply(event.params.token1)
     let decimals = fetchTokenDecimals(event.params.token1)
+    let idecimals = fetchITokenDecimals(event.params.token0)
 
     // bail if we couldn't figure out the decimals
-    if (decimals === null) {
+    if (decimals === null || idecimals === null) {
+      log.debug('mybug the decimal on token 0 was null', [])
       return
     }
+
     token1.decimals = decimals
+    token1.idecimals = idecimals
     token1.derivedETH = ZERO_BD
     token1.tradeVolume = ZERO_BD
     token1.tradeVolumeUSD = ZERO_BD

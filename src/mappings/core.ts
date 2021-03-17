@@ -225,8 +225,8 @@ export function handleSync(event: Sync): void {
   token0.totalLiquidity = token0.totalLiquidity.minus(pair.reserve0)
   token1.totalLiquidity = token1.totalLiquidity.minus(pair.reserve1)
 
-  pair.reserve0 = convertTokenToDecimal(event.params.reserve0, token0.decimals)
-  pair.reserve1 = convertTokenToDecimal(event.params.reserve1, token1.decimals)
+  pair.reserve0 = convertTokenToDecimal(event.params.reserve0, token0.idecimals)
+  pair.reserve1 = convertTokenToDecimal(event.params.reserve1, token1.idecimals)
 
   if (pair.reserve1.notEqual(ZERO_BD)) pair.token0Price = pair.reserve0.div(pair.reserve1)
   else pair.token0Price = ZERO_BD
@@ -289,8 +289,8 @@ export function handleMint(event: Mint): void {
   let token1 = Token.load(pair.token1)
 
   // update exchange info (except balances, sync will cover that)
-  let token0Amount = convertTokenToDecimal(event.params.amount0, token0.decimals)
-  let token1Amount = convertTokenToDecimal(event.params.amount1, token1.decimals)
+  let token0Amount = convertTokenToDecimal(event.params.amount0, token0.idecimals)
+  let token1Amount = convertTokenToDecimal(event.params.amount1, token1.idecimals)
 
   // update txn counts
   token0.txCount = token0.txCount.plus(ONE_BI)
@@ -349,8 +349,8 @@ export function handleBurn(event: Burn): void {
   //update token info
   let token0 = Token.load(pair.token0)
   let token1 = Token.load(pair.token1)
-  let token0Amount = convertTokenToDecimal(event.params.amount0, token0.decimals)
-  let token1Amount = convertTokenToDecimal(event.params.amount1, token1.decimals)
+  let token0Amount = convertTokenToDecimal(event.params.amount0, token0.idecimals)
+  let token1Amount = convertTokenToDecimal(event.params.amount1, token1.idecimals)
 
   // update txn counts
   token0.txCount = token0.txCount.plus(ONE_BI)
@@ -398,10 +398,10 @@ export function handleSwap(event: Swap): void {
   let pair = Pair.load(event.address.toHexString())
   let token0 = Token.load(pair.token0)
   let token1 = Token.load(pair.token1)
-  let amount0In = convertTokenToDecimal(event.params.amount0In, token0.decimals)
-  let amount1In = convertTokenToDecimal(event.params.amount1In, token1.decimals)
-  let amount0Out = convertTokenToDecimal(event.params.amount0Out, token0.decimals)
-  let amount1Out = convertTokenToDecimal(event.params.amount1Out, token1.decimals)
+  let amount0In = convertTokenToDecimal(event.params.amount0In, token0.idecimals)
+  let amount1In = convertTokenToDecimal(event.params.amount1In, token1.idecimals)
+  let amount0Out = convertTokenToDecimal(event.params.amount0Out, token0.idecimals)
+  let amount1Out = convertTokenToDecimal(event.params.amount1Out, token1.idecimals)
 
   // totals for volume updates
   let amount0Total = amount0Out.plus(amount0In)

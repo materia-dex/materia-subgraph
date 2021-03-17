@@ -1,13 +1,21 @@
 /* eslint-disable prefer-const */
 import { log, BigInt, BigDecimal, Address, EthereumEvent } from '@graphprotocol/graph-ts'
 import { ERC20 } from '../types/Factory/ERC20'
+import { ITEM } from '../types/Factory/ITEM'
 import { ERC20SymbolBytes } from '../types/Factory/ERC20SymbolBytes'
 import { ERC20NameBytes } from '../types/Factory/ERC20NameBytes'
 import { User, Bundle, Token, LiquidityPosition, LiquidityPositionSnapshot, Pair } from '../types/schema'
 import { Factory as FactoryContract } from '../types/templates/Pair/Factory'
+import { ERC20WrapperV1 } from '../types/Factory/ERC20WrapperV1'
+import { IETH_ADDRESS } from './pricing'
 
 export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000'
 export const FACTORY_ADDRESS = '0xB498a69fF7b9a73C58491d564Fc6a462b259c860'
+
+export let INTERFACE_ERC20W_ARRAY: String[] = [
+  "0xc4681b7f5206603715998dabac4fa87c586ad63d",
+  "0xc46abe9805c54107114e04bdb30f189434cce2d3"
+]
 
 export let ZERO_BI = BigInt.fromI32(0)
 export let ONE_BI = BigInt.fromI32(1)
@@ -53,7 +61,7 @@ export function isNullEthValue(value: string): boolean {
   return value == '0x0000000000000000000000000000000000000000000000000000000000000001'
 }
 
-export function fetchTokenSymbol(tokenAddress: Address): string {
+export function fetchTokenISymbol(tokenAddress: Address): string {
   // hard coded overrides
   if (tokenAddress.toHexString() == '0xe0b7927c4af23765cb51314a0e0521a9645f0e2a') {
     return 'DGD'
@@ -83,6 +91,96 @@ export function fetchTokenSymbol(tokenAddress: Address): string {
   return symbolValue
 }
 
+export function fetchTokenSymbol(tokenAddress: Address): string {
+  // hard coded overrides
+  if (tokenAddress.toHexString() == '0xe0b7927c4af23765cb51314a0e0521a9645f0e2a') {
+    return 'DGD'
+  }
+  if (tokenAddress.toHexString() == '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9') {
+    return 'AAVE'
+  }
+  if (tokenAddress.toHexString() == '0x1d6316dbbe18b6e9b75ae064aa114fe7dc208edc') {
+    return 'ETH'
+  }
+
+  let icontract = ITEM.bind(tokenAddress)
+
+  //Get ERC20 Information from ITEMs
+  let objectId = icontract.try_objectId();
+  let mainInterface = icontract.try_mainInterface();
+
+  //WRAPPED
+  if (INTERFACE_ERC20W_ARRAY.includes(mainInterface.value.toHexString())) {
+    tokenAddress = ERC20WrapperV1.bind(mainInterface.value).try_source(objectId.value).value;
+  }
+
+  let contract = ERC20.bind(tokenAddress)
+  let contractSymbolBytes = ERC20SymbolBytes.bind(tokenAddress)
+
+  // try types string and bytes32 for symbol
+  let symbolValue = 'unknown'
+  let symbolResult = contract.try_symbol()
+  if (symbolResult.reverted) {
+    let symbolResultBytes = contractSymbolBytes.try_symbol()
+    if (!symbolResultBytes.reverted) {
+      // for broken pairs that have no symbol function exposed
+      if (!isNullEthValue(symbolResultBytes.value.toHexString())) {
+        symbolValue = symbolResultBytes.value.toString()
+      }
+    }
+  } else {
+    symbolValue = symbolResult.value
+  }
+
+  return symbolValue
+}
+
+export function fetchItemSoruce(tokenAddress: Address): string {
+  //Get ERC20 Information from ITEMs
+  let icontract = ITEM.bind(tokenAddress)
+  let objectId = icontract.try_objectId();
+
+  let mainInterface = icontract.try_mainInterface();
+
+  //WRAPPED
+  if (INTERFACE_ERC20W_ARRAY.includes(mainInterface.value.toHexString())) {
+    return ERC20WrapperV1.bind(mainInterface.value).try_source(objectId.value).value.toHexString();
+  }
+  else {
+    return " "
+  }
+}
+
+export function fetchITokenName(tokenAddress: Address): string {
+  // hard coded overrides
+  if (tokenAddress.toHexString() == '0xe0b7927c4af23765cb51314a0e0521a9645f0e2a') {
+    return 'DGD'
+  }
+  if (tokenAddress.toHexString() == '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9') {
+    return 'Aave Token'
+  }
+
+  let contract = ERC20.bind(tokenAddress)
+  let contractNameBytes = ERC20NameBytes.bind(tokenAddress)
+
+  // try types string and bytes32 for name
+  let nameValue = 'unknown'
+  let nameResult = contract.try_name()
+  if (nameResult.reverted) {
+    let nameResultBytes = contractNameBytes.try_name()
+    if (!nameResultBytes.reverted) {
+      // for broken exchanges that have no name function exposed
+      if (!isNullEthValue(nameResultBytes.value.toHexString())) {
+        nameValue = nameResultBytes.value.toString()
+      }
+    }
+  } else {
+    nameValue = nameResult.value
+  }
+
+  return nameValue
+}
+
 export function fetchTokenName(tokenAddress: Address): string {
   // hard coded overrides
   if (tokenAddress.toHexString() == '0xe0b7927c4af23765cb51314a0e0521a9645f0e2a') {
@@ -90,6 +188,20 @@ export function fetchTokenName(tokenAddress: Address): string {
   }
   if (tokenAddress.toHexString() == '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9') {
     return 'Aave Token'
+  }
+  if (tokenAddress.toHexString() == '0x1d6316dbbe18b6e9b75ae064aa114fe7dc208edc') {
+    return 'Ether'
+  }
+
+  let icontract = ITEM.bind(tokenAddress)
+
+  //Get ERC20 Information from ITEMs
+  let objectId = icontract.try_objectId();
+  let mainInterface = icontract.try_mainInterface();
+
+  //WRAPPED
+  if (INTERFACE_ERC20W_ARRAY.includes(mainInterface.value.toHexString())) {
+    tokenAddress = ERC20WrapperV1.bind(mainInterface.value).try_source(objectId.value).value;
   }
 
   let contract = ERC20.bind(tokenAddress)
@@ -123,13 +235,41 @@ export function fetchTokenTotalSupply(tokenAddress: Address): BigInt {
   return BigInt.fromI32(totalSupplyValue as i32)
 }
 
-export function fetchTokenDecimals(tokenAddress: Address): BigInt {
+export function fetchITokenDecimals(tokenAddress: Address): BigInt {
   // hardcode overrides
-  if (tokenAddress.toHexString() == '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9') {
+  if (tokenAddress.toHexString() == '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9' || tokenAddress.toHexString() == IETH_ADDRESS) {
     return BigInt.fromI32(18)
   }
 
   let contract = ERC20.bind(tokenAddress)
+  // try types uint8 for decimals
+  let decimalValue = null
+  let decimalResult = contract.try_decimals()
+  if (!decimalResult.reverted) {
+    decimalValue = decimalResult.value
+  }
+  return BigInt.fromI32(decimalValue as i32)
+}
+
+export function fetchTokenDecimals(tokenAddress: Address): BigInt {
+  // hardcode overrides
+  if (tokenAddress.toHexString() == '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9' || tokenAddress.toHexString() == IETH_ADDRESS) {
+    return BigInt.fromI32(18)
+  }
+
+  let icontract = ITEM.bind(tokenAddress)
+
+  //Get ERC20 Information from ITEMs
+  let objectId = icontract.try_objectId();
+  let mainInterface = icontract.try_mainInterface();
+
+  //WRAPPED
+  if (INTERFACE_ERC20W_ARRAY.includes(mainInterface.value.toHexString())) {
+    tokenAddress = ERC20WrapperV1.bind(mainInterface.value).try_source(objectId.value).value;
+  }
+
+  let contract = ERC20.bind(tokenAddress);
+
   // try types uint8 for decimals
   let decimalValue = null
   let decimalResult = contract.try_decimals()
@@ -182,7 +322,7 @@ export function createLiquiditySnapshot(position: LiquidityPosition, event: Ethe
     )
     return
   }
-  
+
   let bundle = Bundle.load('1')
   let pair = Pair.load(position.pair)
   let token0 = Token.load(pair.token0)
